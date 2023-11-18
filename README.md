@@ -1,2 +1,22 @@
 # BE
-BackEnd
+- SpringBoot
+    - Spring Security(보류)
+    - Spring Data JPA
+- Other
+    - QueryDSL
+    - JWT
+    - 
+- CI/CD
+    - Jenkins
+    - git action
+    - docker
+    - HTTPS(SSL 적용)
+- Test
+    - JUnit5
+    - PostMan
+    - Swagger
+- Build Type: Gradle
+- Language : Java
+- jvm: 17
+- Packaging: jar
+- DB: MySQL
