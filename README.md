@@ -20,3 +20,5 @@
 - jvm: 17
 - Packaging: jar
 - DB: MySQL
+
+- Jira and Git 연동하기
