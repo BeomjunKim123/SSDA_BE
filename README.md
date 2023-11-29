@@ -8,9 +8,10 @@
     - 
 - CI/CD
     - Jenkins
-    - git action
-    - docker
-    - HTTPS(SSL 적용)
+    - Docker
+    - ubuntu
+    - slack(alert)
+    - HTTPS(SSL/TLS)
 - Test
     - JUnit5
     - PostMan
