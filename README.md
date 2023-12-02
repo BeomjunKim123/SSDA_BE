@@ -67,26 +67,3 @@
 
 <br>
 
-  
-
-- Other
-    - QueryDSL
-    - JWT
-    - 
-- CI/CD
-    - Jenkins
-    - Docker
-    - ubuntu
-    - slack(alert)
-    - HTTPS(SSL/TLS)
-- Test
-    - JUnit5
-    - PostMan
-    - Swagger
-- Build Type: Gradle
-- Language : Java
-- jvm: 17
-- Packaging: jar
-- DB: MySQL
-
-- Jira and Git 연동하기
