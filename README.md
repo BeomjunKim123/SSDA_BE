@@ -1,4 +1,22 @@
-# BE
+# ✏ 함께쓰는 일기장으로 상대와 일상을 공유
+
+- 배포 URL : 
+- Test ID : 
+- Test PW : 
+
+<br>
+
+## ✨ 프로젝트 소개
+
+### [ 프로젝트 간단 소개 ]
+
+<br/>
+
+### [ 프로젝트 기획 의도 ]
+
+<br/>
+
+  
 - SpringBoot
     - Spring Security(보류)
     - Spring Data JPA
