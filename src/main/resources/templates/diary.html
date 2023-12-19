@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns="http://www.w3.org/1999/html"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+
+    $(document).ready(function() {
+        $('#diaryForm').on('submit', function(e) {
+            e.preventDefault(); // 폼 기본 제출 방지
+            var diaryTitle = $('input[name="diaryTitle"]').val();
+            $.ajax({
+                url: '/api/diary',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ title: diaryTitle }),
+                success: function(response) {
+                    console.log('일기장 추가됨', response);
+                    // 성공 로직 처리
+                },
+                error: function(xhr, status, error) {
+                    console.error('추가 실패', status, error);
+                    // 에러 로직 처리
+                }
+            });
+        });
+    });
+
+    </script>
+</th:block>
+<body>
+<div layout:fragment="content">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-center">일기장 추가</p>
+                    <hr>
+                    <form id="diaryForm">
+                        <div class="mb-3">
+                            <input type="text" name="diaryTitle" placeholder="일기장 제목" required>
+                        </div>
+                        <div class="mb-3 text-center">
+                            <button type="submit" class="btn btn-primary">추가하기</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>
