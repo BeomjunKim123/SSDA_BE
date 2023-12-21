@@ -5,6 +5,7 @@ import com.ssda.board.entity.Board;
 import com.ssda.board.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.*;
 
@@ -36,18 +37,18 @@ public class BoardService {
         return boardRepository.findAll();
     }
     public Board updateBoard(BoardDto boardDto) {
-        Optional<Board> checkName = boardRepository.findByTitle(boardDto.getBoardName());
-        if(checkName.isPresent()) {
-            throw new IllegalStateException("해당 일기장 이름은 이미 존재하는 이름이다.");
-        }
-        Optional<Board> updateName = boardRepository.findById(boardDto.getId());
-        if (updateName.isPresent()) {
-            Board board = updateName.get();
-            board.setTitle(boardDto.getBoardName());
+        Optional<Board> existingBoard = boardRepository.findByTitle(boardDto.getBoardName());
+        if(existingBoard.isPresent()) {
+            Board board = existingBoard.get();
+            Optional<Board> checkBoard = boardRepository.findByTitle(boardDto.getNewName());
+            if(checkBoard.isPresent() && !checkBoard.get().getId().equals(board.getId())) {
+                throw new IllegalStateException("새 제목은 이미 사용중입니다....");
+            }
+            board.setTitle(boardDto.getNewName());
             boardRepository.save(board);
             return board;
         } else {
-            throw new IllegalArgumentException("해당 일기장을 찾을 수 없습니다.");
+            throw new IllegalStateException("해당 제목의 보드를 찾을 수 없음.....");
         }
     }
 }

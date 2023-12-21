@@ -65,18 +65,72 @@
                 });
             }
             function createBoard(title) {
-                var diary = $('<div>')
-                    .addClass('card')
-                    .css({
-                        'position': 'relative',
-                        'flex': '0 0 30%',
-                        'margin': '1%'
-                    })
-                    .append(
-                        $('<div>').addClass('card-body').text(title)
-                    );
+                // 카드 본문 생성
+                var cardBody = $('<div>').addClass('card-body d-flex justify-content-between');
 
+                // 제목 요소 생성 및 추가 (왼쪽에 위치)
+                var titleElement = $('<div>').addClass('text-start').text(title);
+                cardBody.append(titleElement);
+
+                var updateButton = $('<div>').addClass('text-center').text('수정').click(function() {
+                    createTextBox($(this), title);
+                });
+                cardBody.append(updateButton);
+                // 'X' 요소 생성 및 추가 (오른쪽에 위치)
+                var closeButton = $('<div>').addClass('text-end').text('X').click(function() {
+                    removeBoard(title);
+                });
+                cardBody.append(closeButton);
+
+                // 카드 생성 및 cardBody 추가
+                var diary = $('<div>').addClass('card').css({
+                    'position': 'relative',
+                    'flex': '0 0 30%',
+                    'margin': '1%'
+                }).append(cardBody);
+
+                // 카드를 diary-container에 추가
                 $('#diary-container').append(diary);
+            }
+            function removeBoard(title) {
+                $.ajax({
+                    url: 'api/deleteBoard',
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ boardName: title }),
+                    success: function(response) {
+                        alert("일기장 삭제 성공");
+                    }
+                });
+            }
+            function createTextBox(editElement, oldTitle) {
+                var textBox = $('<input type="text" class="form-control">').val(oldTitle);
+                var updateButton = $('<button>').text('+').addClass('update-btn');
+
+                updateButton.click(function() {
+                    updateBoard(textBox.val(), oldTitle);
+                    textBox.replaceWith(editElement);
+                });
+
+                var container = $('<div>').addClass('update-container').append(textBox).append(updateButton);
+
+                editElement.replaceWith(container);
+                textBox.focus();
+
+            }
+            function updateBoard(newTitle, oldTitle) {
+                $.ajax({
+                    url: 'api/updateBoard',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ newName: newTitle, boardName: oldTitle }),
+                    success: function(response) {
+                        console.log('Board update:', response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Update failed:', error);
+                    }
+                });
             }
             loadBoard();
         });
