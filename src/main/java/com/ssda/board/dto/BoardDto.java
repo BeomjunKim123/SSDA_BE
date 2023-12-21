@@ -7,6 +7,8 @@ public class BoardDto {
     private Long id;
     private String boardName;
     private String newName;
+
+
     public Long getId() {
         return id;
     }

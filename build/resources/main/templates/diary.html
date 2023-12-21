@@ -84,25 +84,37 @@
 
                 var diary = $('<div>').addClass('card').css({
                     'position': 'relative',
-                    'flex': '0 0 30%',
-                    'margin': '1%'
+                    'flex': '0 0 30%'
                 }).append(cardBody);
 
                 $('#diary-container').append(diary);
             }
             function loadDiaryContent(title, cardBody) {
                 $.ajax({
-                    url: 'api/getDiaryContent',
+                    url: 'api/getDiary',
                     type: 'GET',
                     data: { boardName: title},
                     success: function(response) {
-                        cardBody.html('<p>' + response.content + '</p>');
+                        if(response && response.length === 0) {
+                            cardBody.html('<p> 일기 내용이 없음 ㅇㅋ? <p>' +
+                                '<button class="btn btn-primary text-end" data-bs-toggle="modal" data-bs-target="#diaryModal">일기 작성</button>'
+                            );
+
+                        } else {
+                            cardBody.html('<p>' + response.content + '</p>');
+                        }
                     },
                     error: function(xhr, status, error) {
-                        console.error("일기 로드 실패", error);
+                        if(xhr.responseText) {
+                            var errorMessage = JSON.parse(xhr.responseText).getMessage;
+                            cardBody.html('<p>' + errorMessage + '<p>');
+                        } else {
+                            console.error("일기 로드 실패", error);
+                        }
                     }
                 });
             }
+
             function removeBoard(title) {
                 $.ajax({
                     url: 'api/deleteBoard',
@@ -170,4 +182,22 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="diaryModal" tabindex="-1" aria-labelledby="diaryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5" id="diaryModalLabel">새 일기 작성</h5>
+                    <button class="btn btn-close btn-sm btn-dark" data-bs-dismiss="modal" aria-label="Close" id="addDirayModalClose">x</button>
+                </div>
+                <div class="modal-body">
+
+                    <textarea class="form-control" id="diaryContent" rows="20" placeholder="일기 내용을 입력하세요."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark btn-sm" id="saveDiary">저장하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+

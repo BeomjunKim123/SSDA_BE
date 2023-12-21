@@ -17,4 +17,9 @@ public class TestController {
     public String diaryInsert() {
         return "/diary";
     }
+
+    @GetMapping(value = "main")
+    public String modalTest() {
+        return "/main";
+    }
 }

@@ -1,4 +1,4 @@
-package com.ssda.member.exception;
+package com.ssda.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
