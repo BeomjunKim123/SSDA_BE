@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns="http://www.w3.org/1999/html"
+      layout:decorate="~{layouts/layout}">
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+    $('document').ready(function() {
+      $('#addDiaryModal').click(function() {
+        $('#diaryModal').modal('show');
+      });
+      $('#addDirayModalClose').click(function() {
+        $('#diaryModal').modal('hide');
+      });
+
+      loadBoard();
+
+      $('#saveDiaryTitle').click(function() {
+        let diaryTitle = $('#addDiaryTitle').val().trim();
+        if(diaryTitle && diaryTitle.length > 0 && diaryTitle.length <= 20) {
+          $.ajax({
+            url: 'api/addBoard',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ boardName: diaryTitle }),
+            success: function(response) {
+              $('#diaryModal').modal('hide');
+              $('#addDiaryTitle').val('');
+              loadBoard();
+            },
+            error: function(xhr, status, error) {
+              if(xhr.responseText) {
+                let errorMessage = JSON.parse(xhr.responseText).message;
+                alert(errorMessgae);
+              } else {
+                alert("일기장 추가 실패");
+              }
+            }
+          });
+        }
+      });
+
+      function loadBoard() {
+        $('#board-container').empty();
+        $.ajax({
+          url: 'api/getBoard',
+          type: 'GET',
+          success: function(response) {
+            response.forEach(function(board) {
+              createBoard(board.title);
+            });
+          },
+          error: function(xhr, status, error) {
+            console.error("일기 로드 실패", error);
+            alert("일기 로드 실패 -> 에러 찾으셈");
+          }
+        });
+      }
+
+      function createBoard(title) {
+        let cardBody = $('<div>')
+          .addClass('card-body board-cardbody');
+
+        let titleElement = $('<div>')
+          .addClass('text-center')
+          .text(title)
+          .click(function() {
+            inDiaryPage($(this).text(), cardBody);
+        });
+        cardBody.append(titleElement);
+
+        let cardFooter = $('<div>').addClass('card-footer');
+
+        let updateButton = $('<button>')
+          .addClass('btn btn-dark opacity-25 btn-sm')
+          .css('margin-right', '30px')
+          .text('수정')
+          .click(function() {
+            createTextBox($(this), title);
+        });
+        cardFooter.append(updateButton);
+
+        let removeButton = $('<button>')
+          .addClass('btn btn-danger opacity-25 btn-sm')
+          .text('x')
+          .click(function() {
+            removeBoard(title);
+        });
+        cardFooter.append(removeButton);
+
+        let diary = $('<div>')
+          .addClass('card')
+          .addClass('board-card')
+          .append(cardBody)
+          .append(cardFooter);
+
+        $('#board-container')
+          .addClass('board-container')
+          .append(diary);
+      }
+
+      function inDiaryPage(title) {
+        $.ajax({
+          url: 'api/getDiary',
+          type: 'GET',
+          data: { boardName: title },
+          success: function(response) {
+            if(response && response.length === 0) {
+              loadAddDiary();
+            } else {
+              loadGetDiary();
+            }
+          },
+          error: function(xhr, status, error) {
+            if(xhr.responseText) {
+              let errorMessage = JSON.parse(xhr.responseText).getMessage;
+            } else {
+              console.error("일기 로드 실패 -> 해결해라", error);
+            }
+          }
+        });
+      }
+
+      $('#diaryWriteModalClose').click(function() {
+        $('#diaryWriteModal').modal('hide');
+      });
+
+      function loadAddDiary() {
+        $('#board-container').empty();
+        $('#main-footer').empty();
+
+        let cardBody = $('<div>')
+          .addClass('card-body')
+          .text('일기가 비었으니 작성하러 가야겠지?');
+
+        let gotoDiaryButton = $('<button>')
+          .addClass('btn btn-dark opacity-20 btn-sm')
+          .text('가즈아!!')
+          .css('cursor', 'pointer')
+          .click(function() {
+            $('#diaryWriteModal').modal('show');
+          });
+        cardBody.append(gotoDiaryButton);
+
+        $('#board-container').append(cardBody);
+      }
+
+      function loadGetDiary() {
+
+      }
+
+      $('#fileUpload').change(function(event) {
+        let files = event.target.files;
+        let imagePreviewContainer = $('#imagePreview');
+        imagePreviewContainer.empty();
+
+        let maxImages = Math.min(files.length, 3);
+        for(let i=0; i<maxImages; i++) {
+          let file = files[i];
+          let reader = new FileReader();
+          reader.onload = function(e) {
+            let img = $('<img>').attr('src', e.target.result)
+              .css({
+                maxWidth: '30%',
+                height: 'auto',
+                flex: '1 0 auto', // flex-grow, flex-shrink, flex-basis 설정
+                marginLeft: '8px',
+                marginTop: '8px'
+               });
+            imagePreviewContainer.append(img);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      $('#saveDiary').click(function() {
+        let titleInput = $('#diaryTitle').val().trim();
+        let contentInput = $('#diaryContent').val().trim();
+
+        let dateInput = $('#diaryDate').val().trim();
+        let currentTime = new Date();
+
+        let hours = String(currentTime.getHours()).padStart(2, '0');
+        let minutes = String(currentTime.getMinutes()).padStart(2, '0');
+        let seconds = String(currentTime.getSeconds()).padStart(2, '0');
+
+        let dateTimeInput = dateInput + "T" + hours + ":" + minutes + ":" + seconds;
+
+        if(!titleInput || !contentInput || !dateInput) {
+          alert("모든 필드를 채워");
+          return;
+        }
+
+        let formData = new FormData();
+        formData.append('diaryName', titleInput);
+        formData.append('diaryContent', contentInput);
+        formData.append('regDate', dateTimeInput);
+
+        let files = $('#fileUpload')[0].files;
+        for(let i=0; i<files.length; i++) {
+          formData.append('diaryImgs', files[i]);
+        }
+
+        $.ajax({
+          url: 'api/addDiary',
+          type: 'POST',
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function(response) {
+            $('#diaryWriteModal').modal('hide');
+            alert("일기 등록 성공");
+          },
+          error: function(xhr, status, error) {
+            console.log('일기 등록 실패', error);
+          }
+        });
+      });
+
+      function createTextBox(edit, oldTitle) {
+        let textBox = $('<input type="text" class="form-control">').val(oldTitle);
+        let updateButton = $('<button>')
+          .text('수정')
+          .addClass('btn btn-sm btn-dark update-btn');
+
+        updateButton.click(function() {
+          updateBoard(textBox.val(), oldTitle);
+          textBox.replaceWith(edit);
+        });
+
+        let container = $('<div>')
+          .addClass('update-container')
+          .append(textBox)
+          .append(updateButton);
+
+        edit.replaceWith(container);
+        textBox.focus();
+      }
+
+      function updateBoard(newTitle, oldTitle) {
+        $.ajax({
+          url: 'api/updateBoard',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ newName: newTitle, boardName: oldTitle }),
+          success: function(response) {
+            console.log('board update:', response);
+          },
+          error: function(xhr, status, error) {
+            console.error('update fail:', error);
+          }
+        });
+      }
+
+      function removeBoard(title) {
+        $.ajax({
+          url: 'api/deleteBoard',
+          type: 'DELETE',
+          contentType: 'application/json',
+          data: JSON.stringify({ boardName: title }),
+          success: function(response) {
+            alert("일기장 삭제 완료");
+            loadBoard();
+          }
+        });
+      }
+
+    });
+  </script>
+</th:block>
+<div layout:fragment="content">
+
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card main-card">
+        <div class="card-body main-cardbody">
+          <p class="text-center">Diary</p>
+          <hr>
+          <div id="board-container"></div>
+        </div>
+        <div class="card-footer" id="main-footer">
+          <button class="btn btn-dark btn-sm" id="addDiaryModal">일기장 추가</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="diaryModal" tabindex="-1" aria-labelledby="diaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fs-5" id="diaryModalLabel">일기장 추가</h5>
+          <button class="btn btn-close btn-sm btn-dark" data-bs-dismiss="modal" aria-label="Close" id="addDirayModalClose">x</button>
+        </div>
+        <div class="modal-body">
+          <input type="text" style="width: 100%;" id="addDiaryTitle" placeholder="일기장 이름">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-dark btn-sm" id="saveDiaryTitle">일기장 추가하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="diaryWriteModal" tabindex="-1" aria-labelledby="diaryWriteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fs-5" id="diaryWriteModalLabel">새 일기 작성</h5>
+          <button class="btn btn-close btn-sm btn-dark" data-bs-dismiss="modal" aria-label="Close" id="diaryWriteModalClose">x</button>
+        </div>
+        <div class="modal-body">
+          <input type="date" id="diaryDate" style="width: 100%; margin-bottom: 10px;">
+          <input type="text" id="diaryTitle" placeholder="  제목" style="width: 100%; margin-bottom: 10px; border: none; border-bottom: 1px solid #000;">
+          <textarea class="form-control" id="diaryContent" rows="20" placeholder="일기 내용을 입력하세요." style="border: none;"></textarea>
+          <div id="imagePreview"></div>
+        </div>
+        <div class="modal-footer">
+          <input type="file" id="fileUpload" multiple hidden>
+          <label for="fileUpload" class="btn btn-sm btn-primary opacity-75">파일 업로드</label>
+          <button type="button" class="btn btn-dark btn-sm" id="saveDiary">일기 쓰기 완료</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
